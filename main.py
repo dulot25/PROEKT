@@ -12,7 +12,8 @@ while True:
     cv2.imwrite("temp_frame.jpg", frame)
     
     try:
-        result = DeepFace.verify(img1_path="owner.jpg",
+        result = DeepFace.verify(img1_path=[ "IMG_9291.jpeg","IMG_9288.jpeg","IMG_9285.jpeg","IMG_9284.jpeg","IMG_9282.jpeg""IMG_9281.jpeg",
+              "IMG_9275.jpeg","IMG_9274.jpeg","IMG_9272.jpeg","IMG_9270.jpeg","IMG_9269.jpeg"],
                                  img2_path="temp_frame.jpg",
                                  model_name="Facenet")
         
