@@ -130,3 +130,62 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+import cv2
+
+# Загружаем эталон
+ref = cv2.imread("face.jpg")
+if ref is None:
+    cap = cv2.VideoCapture(0)
+    ret, frame = cap.read()
+    cv2.imwrite("face.jpg", frame)
+    cap.release()
+    ref = cv2.imread("face.jpg")
+
+# Детектор лиц
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Находим лицо на эталоне
+gray_ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY)
+faces_ref = face_cascade.detectMultiScale(gray_ref, 1.3, 5)
+if len(faces_ref) == 0:
+    print("Лицо не найдено")
+    exit()
+x, y, w, h = faces_ref[0]
+ref_face = gray_ref[y:y+h, x:x+w]
+
+# Камера
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    
+    for (x, y, w, h) in faces:
+        current = gray[y:y+h, x:x+w]
+        current = cv2.resize(current, (ref_face.shape[1], ref_face.shape[0]))
+        
+        # Сравнение
+        result = cv2.matchTemplate(current, ref_face, cv2.TM_CCOEFF_NORMED)
+        similarity = result[0][0] * 100
+        
+        # Цвет рамки
+        color = (0, 255, 0) if similarity > 50 else (0, 0, 255)
+        
+        cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+        cv2.putText(frame, f"{similarity:.0f}%", (x, y-10), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    
+    cv2.imshow('Face', frame)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
